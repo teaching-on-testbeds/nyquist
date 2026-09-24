@@ -2,9 +2,9 @@
 
 This experiment looks at the relationship between data transmission rate, bandwidth, and modulation scheme, as described by the Nyquist formula.
 
-It should take about 60-120 minutes to run this experiment, but you will need to have reserved that time in advance. This experiment uses wireless resources (the SB5 sandbox at [COSMOS](http://cosmos-lab.org)), and you can only use wireless resources on COSMOS during a reservation.
+It should take about 60-120 minutes to run this experiment, but you will need to have reserved that time in advance. This experiment uses wireless resources - either the sb5 sandbox at [COSMOS](http://cosmos-lab.org), or the sb7 sandbox at [COSMOS](http://cosmos-lab.org) - and you can only use wireless resources during a reservation.
 
-To run this experiment, you will need a COSMOS account, and you will need to have joined a project. You should have already uploaded your SSH keys to your profile. (If you haven't used COSMOS before, you may want to first go through [Hello, COSMOS](https://ffund.github.io/hello-opencode/).) Finally, you must have reserved time on the SB5 sandbox, and you must run this experiment during your reserved time. 
+To run this experiment, you will need a COSMOS account, and you will need to have joined a project. You should have already uploaded your SSH keys to your profile. (If you haven't used COSMOS before, you may want to first go through [Hello, COSMOS](https://ffund.github.io/hello-opencode/).) Finally, you must have reserved time on the sandbox, and you must run this experiment during your reserved time. 
 
 - Skip to [Results](#results)
 - Skip to [Run my experiment](#run-my-experiment)
@@ -57,14 +57,22 @@ Finally, on changing the constellation size to 4 points (squaring the number of 
 
 ## Run my experiment
 
-To run this experiment, you need a reservation on the SB5 sandbox at COSMOS. You will have to make your reservation in advance. This experiment uses the 2.4 GHz ISM band at the documented cabled SB5 configuration; it is not authorization for other bands or an antenna experiment.
+To run this experiment, you need a reservation on a sandbox at COSMOS. You will have to make your reservation in advance. This experiment uses the 2.4 GHz ISM band at the documented cabled configuration; it is not authorization for other bands or an antenna experiment. It works on either the sb5 sandbox (USB USRP B210) or the sb7 sandbox (Ethernet USRP N210 with SBX daughterboards); the instructions below give both where they differ.
 
 ### Set up testbed
 
 At your reserved time, open a terminal and log in to the console of the testbed that you have reserved:
 
+If you are using sb5, run
+
 ```
 ssh YOUR_USERNAME@sb5.cosmos-lab.org
+```
+
+If you are using sb7, run
+
+```
+ssh YOUR_USERNAME@sb7.cosmos-lab.org
 ```
 
 Then, you must load a disk image onto the testbed nodes. From the testbed console, run:
@@ -96,6 +104,16 @@ omf tell on -t node1-1,node1-2
 ```
 
 Wait a few minutes for your testbed nodes to turn on, then continue with the experiment.
+
+#### If you are using sb7: connect the radios
+
+The N210s are Ethernet devices on the 192.168.10.x subnet, attached to the `enp4s0` interface on each node. After imaging, assign the interface IP once on each node:
+
+```
+ip addr add 192.168.10.1/24 dev enp4s0
+```
+
+(If the address is already set, the command will report that it already exists, which is fine.) This assignment is not persistent across reboots, so re-apply it after every image load or reboot.
 
 ### Install NovaSDR (spectrum analyzer) on the receiver
 
@@ -130,15 +148,17 @@ tar xzf novasdr.tar.gz
 cd /root/novasdr-0.3.7-linux-x86_64
 ```
 
-Check that the B210 radio is visible to SoapySDR:
+Check that the radio is visible to SoapySDR:
 
 ```
 SoapySDRUtil --find
 ```
 
-You should see a line like `driver = uhd  label = B210 30D3F15` (in addition to the audio device). With the `baseline-sdr.ndz` image, the SoapySDR UHD module is already installed, so this step should work without any additional setup.
+If you are using sb5, you should see a line like `driver = uhd  label = B210 30D3F15` (in addition to the audio device). If you are using sb7, you should see a line like `driver = uhd  label = N210...` (if you only see the audio device, make sure you did the `ip addr add` step above). With the `baseline-sdr.ndz` image, the SoapySDR UHD module is already installed, so this step should work without any additional setup.
 
 Copy the lab configuration into the NovaSDR directory and start the server:
+
+If you are using sb5, run
 
 ```
 cp /root/nyquist/conf/config.json /root/nyquist/conf/receivers.json /root/novasdr-0.3.7-linux-x86_64/config/
@@ -146,16 +166,32 @@ cd /root/novasdr-0.3.7-linux-x86_64
 ./novasdr-server -c config/config.json -r config/receivers.json
 ```
 
+If you are using sb7, run
+
+```
+cp /root/nyquist/conf/config-n210.json /root/nyquist/conf/receivers-n210.json /root/novasdr-0.3.7-linux-x86_64/config/
+cd /root/novasdr-0.3.7-linux-x86_64
+./novasdr-server -c config/config.json -r config/receivers.json
+```
+
 Keep this terminal open, so that `novasdr` stays running.
 
-The configuration is for a B210 tuned to 2.4 GHz at 8 MS/s. This sample rate gives a ±4 MHz view of the spectrum, which is wide enough to see the occupied bandwidth of all the transmissions in this lab (up to about 2 MHz). 
+The configuration is for a radio tuned to 2.4 GHz at 8 MS/s. This sample rate gives a ±4 MHz view of the spectrum, which is wide enough to see the occupied bandwidth of all the transmissions in this lab (up to about 2 MHz). The sb5 config uses a receive gain of 40 dB and the sb7 config uses 30 dB (the N210 SBX receive gain range is 0-31.5 dB).
 
 ### Prepare your browser
 
 On your laptop, open a new terminal and set up an SSH tunnel from your laptop to the receiver node's NovaSDR port, going through the console:
 
+If you are using sb5, run
+
 ```
 ssh -L 9002:127.0.0.1:9002 -J YOUR_USERNAME@sb5.cosmos-lab.org root@node1-1
+```
+
+If you are using sb7, run
+
+```
+ssh -L 9002:127.0.0.1:9002 -J YOUR_USERNAME@sb7.cosmos-lab.org root@node1-1
 ```
 
 Keep that terminal open. Then open your browser at:
@@ -164,14 +200,22 @@ Keep that terminal open. Then open your browser at:
 http://localhost:9002/
 ```
 
-You should see the NovaSDR waterfall on the "SB5 B210" receiver, although there is no current transmission. You may adjust the min/max setting and colormap of the waterfall display to your preference.
+You should see the NovaSDR waterfall (on "SB5 B210" on sb5, or "SB7 N210" on sb7), although there is no current transmission. You may adjust the min/max setting and colormap of the waterfall display to your preference.
 
 ### Prepare your transmitter
 
 In a third terminal, log in to the node that will act as transmitter (we will use `node1-2`):
 
+If you are using sb5, run
+
 ```
 ssh -J YOUR_USERNAME@sb5.cosmos-lab.org root@node1-2
+```
+
+If you are using sb7, run
+
+```
+ssh -J YOUR_USERNAME@sb7.cosmos-lab.org root@node1-2
 ```
 
 On the transmitter node, get the lab repository (it contains the transmitter, `src/narrowband_tx.py`):
@@ -182,8 +226,17 @@ git clone https://github.com/teaching-on-testbeds/nyquist.git
 
 Then, to generate a PSK signal, run:
 
+If you are using sb5, run
+
 ```
 time python3 /root/nyquist/src/narrowband_tx.py -f 2400e6 -r 0.5e6 -M 5 -p 2 --excess-bw=0.05
+```
+
+If you are using sb7, run
+
+```
+time python3 /root/nyquist/src/narrowband_tx.py -f 2400e6 -r 0.5e6 -M 5 -p 2 \
+  --excess-bw=0.05 --args addr=192.168.10.2 --subdev A:0 --tx-gain 20
 ```
 
 where
@@ -205,14 +258,32 @@ transmitted 5.0 MB (40000000 bits) in 80.00 s
 
 However, if we change the bitrate to 2 Mbps, 2 MHz of bandwidth is used and the transmission takes about 20 seconds:
 
+If you are using sb5, run
+
 ```
 time python3 /root/nyquist/src/narrowband_tx.py -f 2400e6 -r 2e6 -M 5 -p 2 --excess-bw=0.05
 ```
 
+If you are using sb7, run
+
+```
+time python3 /root/nyquist/src/narrowband_tx.py -f 2400e6 -r 2e6 -M 5 -p 2 \
+  --excess-bw=0.05 --args addr=192.168.10.2 --subdev A:0 --tx-gain 20
+```
+
 Finally, changing the constellation size to 4 points, the transmission still takes about 20 seconds, but uses only half the bandwidth, 1 MHz, when transmitting at 2 Mbps:
+
+If you are using sb5, run
 
 ```
 time python3 /root/nyquist/src/narrowband_tx.py -f 2400e6 -r 2e6 -M 5 -p 4 --excess-bw=0.05
+```
+
+If you are using sb7, run
+
+```
+time python3 /root/nyquist/src/narrowband_tx.py -f 2400e6 -r 2e6 -M 5 -p 4 \
+  --excess-bw=0.05 --args addr=192.168.10.2 --subdev A:0 --tx-gain 20
 ```
 
 
@@ -253,14 +324,14 @@ This experiment was updated in September 2026, to use NovaSDR instead of ShinySD
 
 If you aren't able to see the transmission in the NovaSDR window, you may have to make some adjustments; some testbeds may have more attenuation (signal loss) between the transmitter and receiver, and so the default gain settings are not sufficient to see the transmission. You can increase the gain on both the receiver and the transmitter:
 
-- To increase the gain on the receiver, change `"gain": 40.0` to a higher value in `config/receivers.json` and restart NovaSDR.
+- To increase the gain on the receiver, change `"gain": 40.0` (sb5) or `"gain": 30.0` (sb7) to a higher value in the `receivers*.json` file and restart NovaSDR.
 - To increase the transmission amplitude on the transmitter, run the transmitter with `--tx-amplitude=0.8` at the end of the command, each time you run it. For example:
 
 ```
 time python3 /root/nyquist/src/narrowband_tx.py -f 2400e6 -r 0.5e6 -M 5 -p 2 --excess-bw=0.05 --tx-amplitude=0.8
 ```
 
-You can also raise the TX gain with `--tx-gain 89` (default is 89 dB in the script).
+You can also raise the TX gain with `--tx-gain 89` on sb5 (`--tx-gain` up to 31.5 dB on sb7, e.g. `--tx-gain 25`).
 
 ### Testbed hardware variants
 
