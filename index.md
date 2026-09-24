@@ -57,7 +57,7 @@ Finally, on changing the constellation size to 4 points (squaring the number of 
 
 ## Run my experiment
 
-To run this experiment, you need a reservation on a sandbox at COSMOS. You will have to make your reservation in advance. This experiment uses the 2.4 GHz ISM band at the documented cabled configuration; it is not authorization for other bands or an antenna experiment. It works on either the sb5 sandbox (USB USRP B210) or the sb7 sandbox (Ethernet USRP N210 with SBX daughterboards); the instructions below give both where they differ.
+To run this experiment, you need a reservation on a sandbox at COSMOS. You will have to make your reservation in advance. This experiment works on either the sb5 sandbox (USB USRP B210) or the sb7 sandbox (Ethernet USRP N210 with SBX daughterboards); the instructions below give both where they differ.
 
 ### Set up testbed
 
@@ -105,16 +105,6 @@ omf tell on -t node1-1,node1-2
 
 Wait a few minutes for your testbed nodes to turn on, then continue with the experiment.
 
-#### If you are using sb7: connect the radios
-
-The N210s are Ethernet devices on the 192.168.10.x subnet, attached to the `enp4s0` interface on each node. After imaging, assign the interface IP once on each node:
-
-```
-ip addr add 192.168.10.1/24 dev enp4s0
-```
-
-(If the address is already set, the command will report that it already exists, which is fine.) This assignment is not persistent across reboots, so re-apply it after every image load or reboot.
-
 ### Install NovaSDR (spectrum analyzer) on the receiver
 
 NovaSDR is a web-based SDR receiver application (spectrum + waterfall in your browser). 
@@ -124,6 +114,14 @@ On the console, log in to the receiver node (we will use `node1-1` as the receiv
 ```
 ssh root@node1-1
 ```
+
+If you are using sb7, the N210 is an Ethernet device on the 192.168.10.x subnet, attached to the `enp4s0` interface on the node. Assign the interface IP now (on each node, after you log in to it):
+
+```
+ip addr add 192.168.10.1/24 dev enp4s0
+```
+
+(If the address is already set, the command will report that it already exists, which is fine. This assignment is not persistent across reboots, so re-apply it after every image load or reboot.)
 
 On the receiver node, get the experiment repository (it contains the NovaSDR configuration files in `conf/`):
 
