@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
-"""Capture raw RX IQ samples to one npz file (USRP B210 / SB5)."""
+"""Capture raw RX IQ samples to one npz file (USRP N210 / SB7 or B210 / SB5)."""
 import argparse
-import os
 import time
 
 import numpy as np
@@ -10,19 +9,22 @@ from gnuradio import gr, blocks, uhd
 p = argparse.ArgumentParser()
 p.add_argument("--freq", type=float, default=2.4e9)
 p.add_argument("--rate", type=float, default=4e6)
-p.add_argument("--gain", type=float, default=40.0)
+p.add_argument("--gain", type=float, default=30.0)
 p.add_argument("--seconds", type=float, default=6.0)
+p.add_argument("--args", default="type=b200", help="UHD device args")
+p.add_argument("--subdev", default="A:A")
+p.add_argument("--antenna", default="RX2")
 p.add_argument("--out", required=True)
 a = p.parse_args()
 
 tb = gr.top_block("IQ capture")
-src = uhd.usrp_source("type=b200",
+src = uhd.usrp_source(a.args,
                       uhd.stream_args(cpu_format="fc32", channels=[0]))
-src.set_subdev_spec("A:A", 0)
+src.set_subdev_spec(a.subdev, 0)
 src.set_samp_rate(a.rate)
 src.set_center_freq(a.freq, 0)
 src.set_gain(a.gain, 0)
-src.set_antenna("RX2", 0)
+src.set_antenna(a.antenna, 0)
 rate = src.get_samp_rate()
 sink = blocks.vector_sink_c()
 tb.connect(src, sink)

@@ -53,7 +53,8 @@ def main():
     p.add_argument("--tx-gain", type=float, default=89.0, help="TX gain (dB)")
     p.add_argument("--tx-amplitude", "--amp", type=float, default=0.2, help="TX amplitude")
     p.add_argument("--antenna", "-A", default="TX/RX")
-    p.add_argument("--args", "-a", default="type=b200")
+    p.add_argument("--subdev", default="A:A", help="subdevice spec (A:A for B200/B210, A:0 for N2xx)")
+    p.add_argument("--args", "-a", default="type=b200", help="UHD device args (e.g. addr=192.168.10.2 for N210)")
     p.add_argument("--seconds", type=float, default=0, help="stop after this many s (0 = never)")
     a = p.parse_args()
 
@@ -84,7 +85,7 @@ def main():
         pre_diff_code=True, excess_bw=a.excess_bw, verbose=False, log=False)
     amp = blocks.multiply_const_cc(a.tx_amplitude)
     usrp = uhd.usrp_sink(a.args, uhd.stream_args(cpu_format="fc32", channels=[0]))
-    usrp.set_subdev_spec("A:A", 0)
+    usrp.set_subdev_spec(a.subdev, 0)
     usrp.set_samp_rate(samp_rate)
     usrp.set_center_freq(a.freq, 0)
     usrp.set_gain(a.tx_gain, 0)

@@ -261,3 +261,28 @@ time python3 /root/nyquist/src/narrowband_tx.py -f 2400e6 -r 0.5e6 -M 5 -p 2 --e
 ```
 
 You can also raise the TX gain with `--tx-gain 89` (default is 89 dB in the script).
+
+### Testbed hardware variants
+
+The configuration files and the transmit commands differ slightly by
+sandbox because the USRP model and its gain range differ.
+
+**SB5 (B210):** `conf/config.json` + `conf/receivers.json` (gain 40 dB);
+device is `type=b200`, subdevice `A:A`, TX gain up to 89 dB (default 89).
+
+**SB7 (N210 with SBX daughterboard):** `conf/config-n210.json` +
+`conf/receivers-n210.json` (gain 30 dB; the SBX RX gain range is 0-31.5 dB).
+The radios are Ethernet devices at `addr=192.168.10.2`, subdevice `A:0`,
+and TX gain is 0-31.5 dB so use `--tx-gain 20`. After imaging, the USRP
+interface needs its IP assigned once on each node:
+
+```
+ip addr add 192.168.10.1/24 dev enp4s0
+```
+
+then the transmitter command becomes
+
+```
+time python3 /root/nyquist/src/narrowband_tx.py -f 2400e6 -r 0.5e6 -M 5 -p 2 \
+  --excess-bw=0.05 --args addr=192.168.10.2 --subdev A:0 --tx-gain 20
+```

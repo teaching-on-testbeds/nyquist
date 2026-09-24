@@ -1,0 +1,29 @@
+{
+  "receivers": [
+    {
+      "id": "n210-sb7",
+      "name": "SB7 N210",
+      "input": {
+        "sps": 8000000,
+        "frequency": 2400000000,
+        "signal": "iq",
+        "fft_size": 1024,
+        "audio_sps": 48000,
+        "waterfall_size": 1024,
+        "accelerator": "none",
+        "driver": {
+          "kind": "soapysdr",
+          "device": "driver=uhd,addr=192.168.10.2",
+          "format": "cf32",
+          "channel": 0,
+          "antenna": "RX2",
+          "gain": 30.0
+        },
+        "defaults": {
+          "frequency": 2400000000,
+          "modulation": "FM"
+        }
+      }
+    }
+  ]
+}

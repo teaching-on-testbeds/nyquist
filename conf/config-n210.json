@@ -1,0 +1,26 @@
+{
+  "server": {
+    "port": 9002,
+    "host": "127.0.0.1",
+    "html_root": "frontend/dist/",
+    "otherusers": 1,
+    "threads": 0
+  },
+  "websdr": {
+    "register_online": false,
+    "name": "SB7 N210",
+    "antenna": "RX2",
+    "grid_locator": "-",
+    "hostname": "",
+    "operator": "",
+    "email": "",
+    "chat_enabled": true
+  },
+  "limits": {
+    "audio": 100,
+    "waterfall": 200,
+    "events": 200,
+    "ws_per_ip": 50
+  },
+  "active_receiver_id": "n210-sb7"
+}
