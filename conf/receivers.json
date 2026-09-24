@@ -1,0 +1,29 @@
+{
+  "receivers": [
+    {
+      "id": "b210-sb5",
+      "name": "SB5 B210",
+      "input": {
+        "sps": 8000000,
+        "frequency": 2400000000,
+        "signal": "iq",
+        "fft_size": 1024,
+        "audio_sps": 48000,
+        "waterfall_size": 1024,
+        "accelerator": "none",
+        "driver": {
+          "kind": "soapysdr",
+          "device": "driver=uhd",
+          "format": "cf32",
+          "channel": 0,
+          "antenna": "RX2",
+          "gain": 40.0
+        },
+        "defaults": {
+          "frequency": 2400000000,
+          "modulation": "FM"
+        }
+      }
+    }
+  ]
+}
