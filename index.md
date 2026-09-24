@@ -115,13 +115,13 @@ On the console, log in to the receiver node (we will use `node1-1` as the receiv
 ssh root@node1-1
 ```
 
-If you are using sb7, the N210 is an Ethernet device on the 192.168.10.x subnet, attached to the `enp4s0` interface on the node. Assign the interface IP now (on each node, after you log in to it):
+If you are using sb7, the radio is attached over a network. In that case, you must assign the interface IP now (on each node, after you log in to it):
 
 ```
 ip addr add 192.168.10.1/24 dev enp4s0
 ```
 
-(If the address is already set, the command will report that it already exists, which is fine. This assignment is not persistent across reboots, so re-apply it after every image load or reboot.)
+(If the address is already set, the command will report that it already exists, which is fine.)
 
 On the receiver node, get the experiment repository (it contains the NovaSDR configuration files in `conf/`):
 
@@ -152,22 +152,25 @@ Check that the radio is visible to SoapySDR:
 SoapySDRUtil --find
 ```
 
-If you are using sb5, you should see a line like `driver = uhd  label = B210 30D3F15` (in addition to the audio device). If you are using sb7, you should see a line like `driver = uhd  label = N210...` (if you only see the audio device, make sure you did the `ip addr add` step above). With the `baseline-sdr.ndz` image, the SoapySDR UHD module is already installed, so this step should work without any additional setup.
+If you are using sb5, you should see a line like `driver = uhd  label = B210 30D3F15` (in addition to the audio device). If you are using sb7, you should see a line like `driver = uhd  label = N210...`.
 
-Copy the lab configuration into the NovaSDR directory and start the server:
+Copy the configuration file into the NovaSDR directory.
 
 If you are using sb5, run
 
 ```
 cp /root/nyquist/conf/config.json /root/nyquist/conf/receivers.json /root/novasdr-0.3.7-linux-x86_64/config/
-cd /root/novasdr-0.3.7-linux-x86_64
-./novasdr-server -c config/config.json -r config/receivers.json
 ```
 
 If you are using sb7, run
 
 ```
 cp /root/nyquist/conf/config-n210.json /root/nyquist/conf/receivers-n210.json /root/novasdr-0.3.7-linux-x86_64/config/
+```
+
+Then start the server:
+
+```
 cd /root/novasdr-0.3.7-linux-x86_64
 ./novasdr-server -c config/config.json -r config/receivers.json
 ```
@@ -216,6 +219,12 @@ If you are using sb7, run
 ssh -J YOUR_USERNAME@sb7.cosmos-lab.org root@node1-2
 ```
 
+and on sb7, you must also configure the network interface for the radio:
+
+```
+ip addr add 192.168.10.1/24 dev enp4s0
+```
+
 On the transmitter node, get the lab repository (it contains the transmitter, `src/narrowband_tx.py`):
 
 ```
@@ -237,7 +246,7 @@ time python3 /root/nyquist/src/narrowband_tx.py -f 2400e6 -r 0.5e6 -M 5 -p 2 \
   --excess-bw=0.05 --args addr=192.168.10.2 --subdev A:0 --tx-gain 20
 ```
 
-where
+where in either case
 
 - `-f` is used to set the frequency at which to transmit,
 - `-r` specifies the bitrate at which to transmit, in bits per second,
