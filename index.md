@@ -2,6 +2,8 @@
 
 This experiment looks at the relationship between data transmission rate, bandwidth, and modulation scheme, as described by the Nyquist formula.
 
+We will send a known data sequence over a single narrowband carrier, receive it with a software defined radio, and look at a waterfall plot that shows us spectrum usage over time.
+
 It should take about 60-120 minutes to run this experiment, but you will need to have reserved that time in advance. This experiment uses wireless resources - either the sb5 sandbox at [COSMOS](http://cosmos-lab.org), or the sb7 sandbox at [COSMOS](http://cosmos-lab.org) - and you can only use wireless resources during a reservation.
 
 To run this experiment, you will need a COSMOS account, and you will need to have joined a project. You should have already uploaded your SSH keys to your profile. (If you haven't used COSMOS before, you may want to first go through [Hello, COSMOS](https://ffund.github.io/hello-opencode/).) Finally, you must have reserved time on the sandbox, and you must run this experiment during your reserved time. 
@@ -66,18 +68,21 @@ At your reserved time, open a terminal and log in to the console of the testbed 
 If you are using sb5, run
 
 ```
+# runs on your workstation
 ssh YOUR_USERNAME@sb5.cosmos-lab.org
 ```
 
 If you are using sb7, run
 
 ```
+# runs on your workstation
 ssh YOUR_USERNAME@sb7.cosmos-lab.org
 ```
 
 Then, you must load a disk image onto the testbed nodes. From the testbed console, run:
 
 ```
+# runs on the sb5 or sb7 console
 omf tell offs -t node1-1,node1-2
 omf load -i baseline-sdr.ndz -t node1-1,node1-2
 ```
@@ -100,6 +105,7 @@ Sometimes, transient errors can cause the process to fail - if you haven't succe
 Then, turn on your nodes with the following command:
 
 ```
+# runs on the sb5 or sb7 console
 omf tell on -t node1-1,node1-2
 ```
 
@@ -112,12 +118,14 @@ NovaSDR is a web-based SDR receiver application (spectrum + waterfall in your br
 On the console, log in to the receiver node (we will use `node1-1` as the receiver):
 
 ```
+# runs on the sb5 or sb7 console
 ssh root@node1-1
 ```
 
 If you are using sb7, the radio is attached over a network. In that case, you must assign the interface IP now (on each node, after you log in to it):
 
 ```
+# runs on node1-1 and, on sb7, node1-2
 ip addr add 192.168.10.1/24 dev enp4s0
 ```
 
@@ -126,12 +134,14 @@ ip addr add 192.168.10.1/24 dev enp4s0
 On the receiver node, get the experiment repository (it contains the NovaSDR configuration files in `conf/`):
 
 ```
+# runs on node1-1
 git clone https://github.com/teaching-on-testbeds/nyquist.git
 ```
 
 Then install the system libraries that NovaSDR needs (SoapySDR, opus for compressed audio streams, and clFFT, which the prebuilt release links against):
 
 ```
+# runs on node1-1
 apt-get update
 apt-get install -y libsoapysdr0.8 soapysdr-tools libopus0 libclfft-dev
 ```
@@ -139,6 +149,7 @@ apt-get install -y libsoapysdr0.8 soapysdr-tools libopus0 libclfft-dev
 Download and unpack the NovaSDR release:
 
 ```
+# runs on node1-1
 cd /root
 curl -fsSL -o novasdr.tar.gz \
   https://github.com/phasor-labs/NovaSDR/releases/download/0.3.7/novasdr-0.3.7-linux-x86_64.tar.gz
@@ -149,6 +160,7 @@ cd /root/novasdr-0.3.7-linux-x86_64
 Check that the radio is visible to SoapySDR:
 
 ```
+# runs on node1-1
 SoapySDRUtil --find
 ```
 
@@ -159,18 +171,21 @@ Copy the configuration file into the NovaSDR directory.
 If you are using sb5, run
 
 ```
+# runs on node1-1
 cp /root/nyquist/conf/config.json /root/nyquist/conf/receivers.json /root/novasdr-0.3.7-linux-x86_64/config/
 ```
 
 If you are using sb7, run
 
 ```
+# runs on node1-1
 cp /root/nyquist/conf/config-n210.json /root/nyquist/conf/receivers-n210.json /root/novasdr-0.3.7-linux-x86_64/config/
 ```
 
 Then start the server:
 
 ```
+# runs on node1-1
 cd /root/novasdr-0.3.7-linux-x86_64
 ./novasdr-server -c config/config.json -r config/receivers.json
 ```
@@ -186,12 +201,14 @@ On your laptop, open a new terminal and set up an SSH tunnel from your laptop to
 If you are using sb5, run
 
 ```
+# runs on your workstation
 ssh -L 9002:127.0.0.1:9002 -J YOUR_USERNAME@sb5.cosmos-lab.org root@node1-1
 ```
 
 If you are using sb7, run
 
 ```
+# runs on your workstation
 ssh -L 9002:127.0.0.1:9002 -J YOUR_USERNAME@sb7.cosmos-lab.org root@node1-1
 ```
 
@@ -210,24 +227,28 @@ In a third terminal, log in to the node that will act as transmitter (we will us
 If you are using sb5, run
 
 ```
+# runs on your workstation
 ssh -J YOUR_USERNAME@sb5.cosmos-lab.org root@node1-2
 ```
 
 If you are using sb7, run
 
 ```
+# runs on your workstation
 ssh -J YOUR_USERNAME@sb7.cosmos-lab.org root@node1-2
 ```
 
 and on sb7, you must also configure the network interface for the radio:
 
 ```
+# runs on node1-2
 ip addr add 192.168.10.1/24 dev enp4s0
 ```
 
 On the transmitter node, get the lab repository (it contains the transmitter, `src/narrowband_tx.py`):
 
 ```
+# runs on node1-2
 git clone https://github.com/teaching-on-testbeds/nyquist.git
 ```
 
@@ -236,12 +257,14 @@ Then, to generate a PSK signal, run:
 If you are using sb5, run
 
 ```
+# runs on node1-2
 time python3 /root/nyquist/src/narrowband_tx.py -f 2400e6 -r 0.5e6 -M 5 -p 2 --excess-bw=0.05
 ```
 
 If you are using sb7, run
 
 ```
+# runs on node1-2
 time python3 /root/nyquist/src/narrowband_tx.py -f 2400e6 -r 0.5e6 -M 5 -p 2 \
   --excess-bw=0.05 --args addr=192.168.10.2 --subdev A:0 --tx-gain 20
 ```
@@ -268,12 +291,14 @@ However, if we change the bitrate to 2 Mbps, 2 MHz of bandwidth is used and the 
 If you are using sb5, run
 
 ```
+# runs on node1-2
 time python3 /root/nyquist/src/narrowband_tx.py -f 2400e6 -r 2e6 -M 5 -p 2 --excess-bw=0.05
 ```
 
 If you are using sb7, run
 
 ```
+# runs on node1-2
 time python3 /root/nyquist/src/narrowband_tx.py -f 2400e6 -r 2e6 -M 5 -p 2 \
   --excess-bw=0.05 --args addr=192.168.10.2 --subdev A:0 --tx-gain 20
 ```
@@ -283,18 +308,20 @@ Finally, changing the constellation size to 4 points, the transmission still tak
 If you are using sb5, run
 
 ```
+# runs on node1-2
 time python3 /root/nyquist/src/narrowband_tx.py -f 2400e6 -r 2e6 -M 5 -p 4 --excess-bw=0.05
 ```
 
 If you are using sb7, run
 
 ```
+# runs on node1-2
 time python3 /root/nyquist/src/narrowband_tx.py -f 2400e6 -r 2e6 -M 5 -p 4 \
   --excess-bw=0.05 --args addr=192.168.10.2 --subdev A:0 --tx-gain 20
 ```
 
 
-### Exercise
+### Varying bitrate and modulation
 
 Using the same procedure as described above, measure the time to deliver 5 MB and the occupied transmission bandwidth for each of the following experiments (i.e. fill in the table):
 
@@ -312,7 +339,11 @@ Using the same procedure as described above, measure the time to deliver 5 MB an
 
 Note that `-p 16` corresponds to 16-QAM in the script (GR 3.10 has no 16-PSK constellation, but 16-QAM has the same number of signal levels).
 
+**Lab report**: Complete the table with the measured delivery time and occupied bandwidth for all nine transmissions. Compare each measurement with the Nyquist prediction.
+
 Create a scatter plot of your experiment data. Put time to deliver 5MB on the y-axis, occupied bandwidth on the x-axis, and have the color of each data point indicate the number of signal levels. Add lines connecting data points of the same color.
+
+**Lab report**: Include the scatter plot. Explain how changing bitrate changes bandwidth and transmission time, and how changing the number of signal levels changes bandwidth at a fixed bitrate.
 
 Also take a screenshot of the waterfall image in the browser for each of these three transmissions, all at the same bitrate (2 Mbps) so that the only difference between them is the number of signal levels:
 
@@ -321,6 +352,8 @@ Also take a screenshot of the waterfall image in the browser for each of these t
 3. 16QAM (`-p 16`) - the occupied bandwidth is about 0.5 MHz
 
 When you look at these three screenshots side by side, confirm that the bitrate, and therefore the transmission time (about 20 seconds for 5 MB), did not change, but the occupied bandwidth halved each time as the number of signal levels doubled. This is the Nyquist result: with the data rate fixed, more signal levels reduce the required bandwidth.
+
+**Lab report**: Include the three waterfall screenshots and describe the bandwidth trend for BPSK, QPSK, and 16-QAM.
 
 ## Notes
 
@@ -335,6 +368,7 @@ If you aren't able to see the transmission in the NovaSDR window, you may have t
 - To increase the transmission amplitude on the transmitter, run the transmitter with `--tx-amplitude=0.8` at the end of the command, each time you run it. For example:
 
 ```
+# runs on node1-2
 time python3 /root/nyquist/src/narrowband_tx.py -f 2400e6 -r 0.5e6 -M 5 -p 2 --excess-bw=0.05 --tx-amplitude=0.8
 ```
 
@@ -355,12 +389,14 @@ and TX gain is 0-31.5 dB so use `--tx-gain 20`. After imaging, the USRP
 interface needs its IP assigned once on each node:
 
 ```
+# runs on node1-1 and node1-2
 ip addr add 192.168.10.1/24 dev enp4s0
 ```
 
 then the transmitter command becomes
 
 ```
+# runs on node1-2
 time python3 /root/nyquist/src/narrowband_tx.py -f 2400e6 -r 0.5e6 -M 5 -p 2 \
   --excess-bw=0.05 --args addr=192.168.10.2 --subdev A:0 --tx-gain 20
 ```
