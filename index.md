@@ -94,10 +94,10 @@ This process can take 5-10 minutes. Don't interrupt it in middle - you'll just h
 If it's been successful, then once the process finishes running completely you should see output similar to:
 
 ```
- INFO exp:  -----------------------------
- INFO exp:  Imaging Process Done
- INFO exp:  2 nodes successfully imaged - Topology saved in '/tmp/omf-pxe_slice-XXXX-topo-success.rb'
- INFO exp:  -----------------------------
+ -----------------------------
+ Imaging Process Done
+ 2 nodes successfully imaged - Topology saved in '/tmp/omf-load-XXXX-topo-success.rb'
+ -----------------------------
 ```
 
 Sometimes, transient errors can cause the process to fail - if you haven't successfully imaged 2 nodes, wait a few minutes and try again.
@@ -279,12 +279,14 @@ where in either case
 
 Later in this experiment, we will modify the values of the `-r` and `-p` arguments.
 
-When we run this, we see that about 0.5 MHz of bandwidth is used, and the total transmission takes a little over 80 seconds (look at the "real" time in the final output on the transmitter):
+When we run this, we see that about 0.5 MHz of bandwidth is used, and the total transmission takes a little over 80 seconds. To get the time to deliver the data, look at the last line that the transmitter prints, `transmitted 5.0 MB ... in ... s`:
 
 ```
 TX BPSK at 0.500 Mbps  sym_rate=500000  sample_rate=2000000  sps=4  excess_bw=0.05
 transmitted 5.0 MB (40000000 bits) in 80.00 s
 ```
+
+(The "real" time that `time` prints after that is a few seconds longer, because it also includes the time it takes to start up the radio before any data is sent. The first time you run the transmitter after the node boots, this startup can take about 10 seconds.)
 
 However, if we change the bitrate to 2 Mbps, 2 MHz of bandwidth is used and the transmission takes about 20 seconds:
 
