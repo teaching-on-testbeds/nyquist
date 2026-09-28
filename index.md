@@ -129,6 +129,12 @@ If you are using sb7, the radio is attached over a network. In that case, you mu
 ip addr add 192.168.10.1/24 dev enp4s0
 ```
 
+```
+# on sb7 console
+ssh root@node1-2
+ip addr add 192.168.10.1/24 dev enp4s0
+```
+
 (If the address is already set, the command will report that it already exists, which is fine.)
 
 On the receiver node, get the experiment repository (it contains the NovaSDR configuration files in `conf/`):
@@ -184,10 +190,18 @@ cp /root/nyquist/conf/config-n210.json /root/nyquist/conf/receivers-n210.json /r
 
 Then start the server:
 
+If you are using sb5, run
 ```
 # runs on node1-1
 cd /root/novasdr-0.3.7-linux-x86_64
 ./novasdr-server -c config/config.json -r config/receivers.json
+```
+
+If you are using sb7, run
+```
+# runs on node1-1
+cd /root/novasdr-0.3.7-linux-x86_64
+./novasdr-server -c config/config-n210.json -r config/receivers-n210.json
 ```
 
 Keep this terminal open, so that `novasdr` stays running.
