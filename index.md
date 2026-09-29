@@ -170,7 +170,7 @@ Check that the radio is visible to SoapySDR:
 SoapySDRUtil --find
 ```
 
-If you are using sb5, you should see a line like `driver = uhd  label = B210 30D3F15` (in addition to the audio device). If you are using sb7, you should see a line like `driver = uhd  label = N210...`.
+If you are using sb5, you should see a line like `driver = uhd  label = B210 30D3F15` (in addition to the audio device). If you are using sb7, you should see a line like `driver = uhd  label = N210...` or `label = F...`.
 
 Copy the configuration file into the NovaSDR directory.
 
